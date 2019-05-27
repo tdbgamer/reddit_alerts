@@ -57,6 +57,7 @@ object Runner {
       .limit(seenBufferSize)
       .build()
       .next()
+      .iterator()
       .asScala
       .map(new SubmissionWrapper(_))
 
