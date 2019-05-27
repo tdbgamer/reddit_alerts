@@ -9,17 +9,29 @@ import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.rogach.scallop.{ScallopConf, Subcommand}
 
-import scala.collection.JavaConverters.asScalaIterator
+import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedSet
 
 object Runner {
-  def getSettings = {
+  implicit class PropertyHelpers(p: Properties) {
+    def update(keyValues: Iterable[(AnyRef, AnyRef)]): Unit = {
+      keyValues.foldLeft(p) {
+        case (props, (k, v)) =>
+          props.put(k, v)
+          props
+      }
+    }
+  }
+
+  def getSettings: Properties = {
     val props = new Properties()
     val source = Option(getClass.getResourceAsStream("/settings.properties"))
     source match {
       case Some(stream) => props.load(stream)
       case None => throw new IllegalStateException("settings.properties could not be read from classpath")
     }
+    val overrides = System.getenv().asScala.filter(elm => props.contains(elm._1))
+    props.update(overrides)
     props
   }
 
@@ -38,14 +50,15 @@ object Runner {
   }
 
   def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[Submission] = {
-    def newPosts(): Iterator[SubmissionWrapper] = asScalaIterator(reddit.subreddit(subreddit)
+    def newPosts(): Iterator[SubmissionWrapper] = reddit.subreddit(subreddit)
       .posts()
       .sorting(SubredditSort.NEW)
       .timePeriod(TimePeriod.ALL)
       .limit(seenBufferSize)
       .build()
       .next()
-      .iterator()).map(new SubmissionWrapper(_))
+      .asScala
+      .map(new SubmissionWrapper(_))
 
     val seen: Set[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize) ++ newPosts()
 
