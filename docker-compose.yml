@@ -9,7 +9,6 @@ services:
       - '8081:8081'
     environment:
       - 'ADV_HOST=127.0.0.1'
-      - 'LICENSE_URL=https://dl.lenses.stream/d/?id=741f71d8-eb82-42ce-b82d-92cb1ac97962'
     network_mode: 'host'
 #  zookeeper:
 #    image: 'bitnami/zookeeper:latest'
