@@ -30,7 +30,7 @@ object Runner {
       case Some(stream) => props.load(stream)
       case None => throw new IllegalStateException("settings.properties could not be read from classpath")
     }
-    val overrides = System.getenv().asScala.filter(elm => props.contains(elm._1))
+    val overrides = System.getenv().asScala.filter(elm => props.containsKey(elm._1))
     props.update(overrides)
     props
   }
