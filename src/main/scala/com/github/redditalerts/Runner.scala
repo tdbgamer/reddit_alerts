@@ -4,11 +4,11 @@ import java.time.Duration
 import java.util
 import java.util.{Properties, UUID}
 
-import com.fasterxml.jackson.annotation.JsonProperty
 import com.github.redditalerts.PropertyImplicits._
+import com.github.redditalerts.models.{Alert, SubmissionWrapper}
 import com.typesafe.scalalogging.LazyLogging
 import javax.mail.internet.{InternetAddress, MimeMessage}
-import javax.mail.{Address, Authenticator, Message, MessagingException, PasswordAuthentication, Session, Transport}
+import javax.mail.{Authenticator, Message, MessagingException, PasswordAuthentication, Session, Transport}
 import net.dean.jraw.RedditClient
 import net.dean.jraw.http.{OkHttpNetworkAdapter, UserAgent}
 import net.dean.jraw.models.{Submission, SubredditSort, TimePeriod}
@@ -31,20 +31,6 @@ object Runner extends LazyLogging {
     val overrides = System.getenv().asScala.filter(elm => props.containsKey(elm._1))
     props.update(overrides)
     props
-  }
-
-  class SubmissionWrapper(val submission: Submission) {
-    override def hashCode(): Int = submission.getUniqueId.hashCode
-
-    override def equals(obj: Any): Boolean = obj match {
-      case obj: SubmissionWrapper => obj.submission.getUniqueId == submission.getUniqueId
-      case obj: Submission => obj.getUniqueId == submission.getUniqueId
-      case _ => false
-    }
-  }
-
-  object SubmissionWrapper {
-    implicit val orderingByDate: Ordering[SubmissionWrapper] = Ordering.by(_.submission.getCreated)
   }
 
   def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[Submission] = {
@@ -118,10 +104,6 @@ object Runner extends LazyLogging {
     }
   }
 
-  case class Alert(@JsonProperty("alert_method") alertMethod: String,
-                   @JsonProperty("alert_msg") alertMsg: String,
-                   @JsonProperty("submission") submission: Submission)
-
   def emailAlerter(conf: CliArgs): Unit = {
     val props = new Properties()
     props.setProperty("mail.smtp.host", conf.emailAlerter.smtpHost())
@@ -133,10 +115,7 @@ object Runner extends LazyLogging {
     })
 
     // Different alert types need different group ids so they don't step on each other
-    val kafkaProps = getSettings
-    kafkaProps.setProperty("group.id", kafkaProps.getProperty("group.id") + "_email")
-
-    val consumer = new KafkaConsumer[Any, Alert](kafkaProps)
+    val consumer = new KafkaConsumer[Any, Alert](getSettings)
     consumer.subscribe(util.Arrays.asList("alerts"))
     try {
       while (true) {
