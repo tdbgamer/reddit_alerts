@@ -135,7 +135,7 @@ object Runner extends LazyLogging {
     val kafkaProps = getSettings
     kafkaProps.setProperty("group.id", kafkaProps.getProperty("group.id") + "_email")
 
-    val consumer = new KafkaConsumer[Any, Alert](getSettings)
+    val consumer = new KafkaConsumer[Any, Alert](kafkaProps)
     consumer.subscribe(util.Arrays.asList("alerts"))
     try {
       while (true) {
