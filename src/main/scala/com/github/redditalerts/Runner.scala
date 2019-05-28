@@ -126,6 +126,7 @@ object Runner extends LazyLogging {
     val props = new Properties()
     props.setProperty("mail.smtp.host", conf.emailAlerter.smtpHost())
     props.setProperty("mail.smtp.port", conf.emailAlerter.smtpPort())
+    props.setProperty("mail.smtp.auth", "true")
     val session = Session.getDefaultInstance(props, new Authenticator {
       override def getPasswordAuthentication: PasswordAuthentication =
         new PasswordAuthentication(conf.emailAlerter.smtpUser(), conf.emailAlerter.smtpPass())
