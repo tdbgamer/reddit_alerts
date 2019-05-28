@@ -18,6 +18,7 @@ libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.9.9"
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.9.9"
 libraryDependencies += "org.rogach" %% "scallop" % "3.3.0"
 libraryDependencies += "javax.mail" % "javax.mail-api" % "1.6.2"
+libraryDependencies += "com.sun.mail" % "javax.mail" % "1.6.2"
 libraryDependencies += "com.typesafe.scala-logging" %% "scala-logging" % "3.9.2"
 
 enablePlugins(JavaAppPackaging)
