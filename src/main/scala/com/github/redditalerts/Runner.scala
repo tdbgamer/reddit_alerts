@@ -149,7 +149,7 @@ object Runner extends LazyLogging {
             Transport.send(message)
           } catch {
             case e: MessagingException => logger.error("Failed to send email", e)
-            case e => logger.error("Unexpected exception", e)
+            case e: Throwable => logger.error("Unexpected exception", e)
           }
         }
       }
