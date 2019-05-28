@@ -16,6 +16,7 @@ import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.rogach.scallop.{ScallopConf, Subcommand}
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedSet
@@ -114,7 +115,6 @@ object Runner extends LazyLogging {
         new PasswordAuthentication(conf.emailAlerter.smtpUser(), conf.emailAlerter.smtpPass())
     })
 
-    // Different alert types need different group ids so they don't step on each other
     val consumer = new KafkaConsumer[Any, Alert](getSettings)
     consumer.subscribe(util.Arrays.asList("alerts"))
     try {
@@ -122,6 +122,7 @@ object Runner extends LazyLogging {
         val records = consumer.poll(Duration.ofMillis(100))
         records.asScala.foreach { record =>
           val alert = record.value()
+          logger.info(s"Alerting $alert")
           try {
             val message = new MimeMessage(session)
             message.setFrom(new InternetAddress(conf.emailAlerter.fromAddress()))
