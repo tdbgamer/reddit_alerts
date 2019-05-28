@@ -80,6 +80,7 @@ object Runner extends LazyLogging {
     }
     val emailAlerter = new Subcommand("email-alerter") {
       val smtpHost = opt[String]("smtp-host", 'h', descr = "SMTP Hostname", required = true)
+      val smtpPort = opt[String]("smtp-port", 'p', descr = "SMTP Port", default = Some("465"))
       val smtpUser = opt[String]("smtp-user", 'u', descr = "SMTP Username", required = true)
       val smtpPass = opt[String]("smtp-pass", 'p', descr = "SMTP Password", required = true)
       val fromAddress = opt[String]("from-address", descr = "From address", required = true)
@@ -123,6 +124,7 @@ object Runner extends LazyLogging {
   def emailAlerter(conf: CliArgs): Unit = {
     val props = new Properties()
     props.setProperty("mail.smtp.host", conf.emailAlerter.smtpHost())
+    props.setProperty("mail.smtp.port", conf.emailAlerter.smtpPort())
     val session = Session.getDefaultInstance(props, new Authenticator {
       override def getPasswordAuthentication: PasswordAuthentication =
         new PasswordAuthentication(conf.emailAlerter.smtpUser(), conf.emailAlerter.smtpPass())
