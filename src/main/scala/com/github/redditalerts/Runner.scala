@@ -115,7 +115,7 @@ object Runner extends LazyLogging {
         new PasswordAuthentication(conf.emailAlerter.smtpUser(), conf.emailAlerter.smtpPass())
     })
 
-    val consumer = new KafkaConsumer[Any, Alert](getSettings)
+    val consumer = new KafkaConsumer[String, Alert](getSettings)
     consumer.subscribe(util.Arrays.asList("alerts"))
     try {
       while (true) {
