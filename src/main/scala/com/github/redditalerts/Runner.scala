@@ -82,11 +82,12 @@ object Runner extends LazyLogging {
       val smtpHost = opt[String]("smtp-host", 'h', descr = "SMTP Hostname", required = true)
       val smtpPort = opt[String]("smtp-port", 'p', descr = "SMTP Port", default = Some("465"))
       val smtpUser = opt[String]("smtp-user", 'u', descr = "SMTP Username", required = true)
-      val smtpPass = opt[String]("smtp-pass", 'p', descr = "SMTP Password", required = true)
+      val smtpPass = opt[String]("smtp-pass", 'P', descr = "SMTP Password", required = true)
       val fromAddress = opt[String]("from-address", descr = "From address", required = true)
       val toAddresses = opt[String]("to-addresses", descr = "Comma separated email addresses to alert", required = true)
     }
     addSubcommand(producer)
+    addSubcommand(emailAlerter)
     verify()
   }
 
