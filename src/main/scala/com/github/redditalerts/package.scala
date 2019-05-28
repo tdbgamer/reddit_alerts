@@ -1,6 +1,8 @@
 package com.github
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import net.dean.jraw.models.Submission
 
 package object redditalerts {
@@ -30,5 +32,10 @@ package object redditalerts {
                      @JsonProperty("alert_msg") alertMsg: String,
                      @JsonProperty("submission") submission: Submission)
 
+  }
+
+  lazy val MAPPER: ObjectMapper = {
+    val mapper = new ObjectMapper
+    mapper.registerModule(DefaultScalaModule)
   }
 }
