@@ -1,6 +1,5 @@
 package com.github
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation._
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -29,7 +28,8 @@ package object redditalerts {
     }
 
     object SubmissionWrapper {
-      implicit val orderingByDate: Ordering[SubmissionWrapper] = Ordering.by(_.submission.getCreated)
+      implicit val orderingByDate: Ordering[SubmissionWrapper] =
+        Ordering.by(wrapper => (wrapper.submission.getCreated, wrapper.submission.getUniqueId))
     }
 
     case class Alert(@JsonProperty("alert_method") alertMethod: String,
