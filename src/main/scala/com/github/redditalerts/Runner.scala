@@ -130,7 +130,7 @@ object Runner extends LazyLogging {
             message.setRecipients(Message.RecipientType.TO, conf.emailAlerter.toAddresses())
             message.setSubject("Reddit Alert!")
             message.setText(s"${alert.alertMsg}\n${alert.submission.title}\n"
-              + s"https://reddit.com${alert.submission.permalink}\n${alert.submission}")
+              + s"https://reddit.com${alert.submission.permalink}")
             Transport.send(message)
           } catch {
             case e: MessagingException => logger.error("Failed to send email", e)
