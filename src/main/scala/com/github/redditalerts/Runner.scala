@@ -33,7 +33,7 @@ object Runner extends LazyLogging {
     props
   }
 
-  def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[List[Submission]] = {
+  def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[Iterable[Submission]] = {
     def newPosts(): Iterator[SubmissionWrapper] = reddit.subreddit(subreddit)
       .posts()
       .sorting(SubredditSort.NEW)
@@ -47,12 +47,12 @@ object Runner extends LazyLogging {
 
     val seen: Set[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize) ++ newPosts()
 
-    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: Set[SubmissionWrapper]): Stream[List[Submission]] = {
+    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: Set[SubmissionWrapper]): Stream[Iterable[Submission]] = {
       val potentialNewSubmissions = SortedSet.empty[SubmissionWrapper] ++ newPosts()
 
       val newSubmissions = potentialNewSubmissions.diff(seen)
       println(s"Found ${newSubmissions.size} new submissions")
-      newSubmissions.map(_.submission).toList #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
+      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
     }
 
     streamPostsRec(reddit, seenBufferSize, seen)
