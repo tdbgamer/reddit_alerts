@@ -55,7 +55,8 @@ object Runner extends LazyLogging {
 
       val newSubmissions = potentialNewSubmissions.diff(seen)
       println(s"Found ${newSubmissions.size} new submissions")
-      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, potentialNewSubmissions)
+      newSubmissions.map(_.submission) #::
+        streamPostsRec(reddit, seenBufferSize, ((seen | newSubmissions) & potentialNewSubmissions) | seen.take(DELETED_POSTS_TOLERANCE))
     }
 
     streamPostsRec(reddit, seenBufferSize, seen)
