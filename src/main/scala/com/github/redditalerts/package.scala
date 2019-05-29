@@ -17,7 +17,7 @@ package object redditalerts {
       *
       * @param submission Submission to wrap
       */
-    class SubmissionWrapper(val submission: Submission) {
+    case class SubmissionWrapper(submission: Submission) {
       override def hashCode(): Int = submission.getUniqueId.hashCode
 
       override def equals(obj: Any): Boolean = obj match {

@@ -43,7 +43,7 @@ object Runner extends LazyLogging {
       .next()
       .iterator()
       .asScala
-      .map(new SubmissionWrapper(_))
+      .map(SubmissionWrapper(_))
 
     val seen: Set[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize) ++ newPosts()
 
