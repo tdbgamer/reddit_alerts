@@ -33,7 +33,7 @@ object Runner extends LazyLogging {
     props
   }
 
-  def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[Submission] = {
+  def streamPosts(reddit: RedditClient, subreddit: String, seenBufferSize: Int = 100): Stream[List[Submission]] = {
     def newPosts(): Iterator[SubmissionWrapper] = reddit.subreddit(subreddit)
       .posts()
       .sorting(SubredditSort.NEW)
@@ -47,12 +47,12 @@ object Runner extends LazyLogging {
 
     val seen: Set[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize) ++ newPosts()
 
-    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: Set[SubmissionWrapper]): Stream[Submission] = {
+    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: Set[SubmissionWrapper]): Stream[List[Submission]] = {
       val potentialNewSubmissions = SortedSet.empty[SubmissionWrapper] ++ newPosts()
 
       val newSubmissions = potentialNewSubmissions.diff(seen)
       println(s"Found ${newSubmissions.size} new submissions")
-      (Stream.empty[Submission] ++ newSubmissions.map(_.submission)) #::: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
+      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
     }
 
     streamPostsRec(reddit, seenBufferSize, seen)
@@ -97,7 +97,7 @@ object Runner extends LazyLogging {
 
     val producer = new KafkaProducer[String, Submission](getSettings)
     try {
-      stream.map(new ProducerRecord[String, Submission]("reddit_topic", _))
+      stream.map(_.map(new ProducerRecord[String, Submission]("reddit_topic", _)))
         .foreach(producer.send)
     } finally {
       producer.close()
