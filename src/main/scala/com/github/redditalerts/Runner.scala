@@ -52,7 +52,7 @@ object Runner extends LazyLogging {
 
       val newSubmissions = potentialNewSubmissions.diff(seen)
       println(s"Found ${newSubmissions.size} new submissions")
-      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
+      newSubmissions.map(_.submission).toList #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
     }
 
     streamPostsRec(reddit, seenBufferSize, seen)
@@ -97,7 +97,7 @@ object Runner extends LazyLogging {
 
     val producer = new KafkaProducer[String, Submission](getSettings)
     try {
-      stream.map(_.map(new ProducerRecord[String, Submission]("reddit_topic", _)))
+      stream.flatMap(_.map(new ProducerRecord[String, Submission]("reddit_topic", _)))
         .foreach(producer.send)
     } finally {
       producer.close()
