@@ -16,7 +16,6 @@ import net.dean.jraw.oauth.{Credentials, OAuthHelper}
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 import org.rogach.scallop.{ScallopConf, Subcommand}
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedSet
@@ -115,7 +114,9 @@ object Runner extends LazyLogging {
         new PasswordAuthentication(conf.emailAlerter.smtpUser(), conf.emailAlerter.smtpPass())
     })
 
-    val consumer = new KafkaConsumer[String, Alert](getSettings)
+    val kafkaProps = getSettings
+    kafkaProps.update(Map("JsonPOJOClass" -> classOf[Alert]))
+    val consumer = new KafkaConsumer[String, Alert](kafkaProps)
     consumer.subscribe(util.Arrays.asList("alerts"))
     try {
       while (true) {
@@ -128,8 +129,8 @@ object Runner extends LazyLogging {
             message.setFrom(new InternetAddress(conf.emailAlerter.fromAddress()))
             message.setRecipients(Message.RecipientType.TO, conf.emailAlerter.toAddresses())
             message.setSubject("Reddit Alert!")
-            message.setText(s"${alert.alertMsg}\n${alert.submission.getTitle}\n"
-              + s"https://reddit.com${alert.submission.getPermalink}\n${alert.submission}")
+            message.setText(s"${alert.alertMsg}\n${alert.submission.title}\n"
+              + s"https://reddit.com${alert.submission.permalink}\n${alert.submission}")
             Transport.send(message)
           } catch {
             case e: MessagingException => logger.error("Failed to send email", e)

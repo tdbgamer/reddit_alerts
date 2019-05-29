@@ -1,11 +1,15 @@
 package com.github
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.annotation.JsonInclude.Include
+import com.fasterxml.jackson.annotation._
+import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import net.dean.jraw.models.Submission
 
+import scala.collection.mutable
+
 package object redditalerts {
+
   object models {
 
     /**
@@ -30,9 +34,22 @@ package object redditalerts {
 
     case class Alert(@JsonProperty("alert_method") alertMethod: String,
                      @JsonProperty("alert_msg") alertMsg: String,
-                     @JsonProperty("submission") submission: Submission)
+                     @JsonProperty("submission") submission: SubmissionSubset)
+
+    case class SubmissionSubset(@JsonProperty("title") title: String,
+                                @JsonProperty("permalink") permalink: String) {
+
+      @JsonIgnore
+      var additionalProperties: mutable.Map[String, Any] = mutable.Map.empty
+
+      @JsonAnySetter
+      def setAdditionalProperty(name: String, value: AnyRef) {
+        this.additionalProperties.put(name, value)
+      }
+    }
 
   }
+
 
   lazy val MAPPER: ObjectMapper = {
     val mapper = new ObjectMapper
