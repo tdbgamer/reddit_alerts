@@ -20,7 +20,10 @@ import org.rogach.scallop.{ScallopConf, Subcommand}
 import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedSet
 
+
 object Runner extends LazyLogging {
+  val DELETED_POSTS_TOLERANCE: Int = 10
+
   def getSettings: Properties = {
     val props = new Properties()
     val source = Option(getClass.getResourceAsStream("/settings.properties"))
@@ -45,14 +48,14 @@ object Runner extends LazyLogging {
       .asScala
       .map(SubmissionWrapper(_))
 
-    val seen: Set[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize) ++ newPosts()
+    val seen: BoundedSet[SubmissionWrapper] = BoundedSet[SubmissionWrapper](seenBufferSize + DELETED_POSTS_TOLERANCE) ++ newPosts()
 
-    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: Set[SubmissionWrapper]): Stream[Iterable[Submission]] = {
-      val potentialNewSubmissions = SortedSet.empty[SubmissionWrapper] ++ newPosts()
+    def streamPostsRec(reddit: RedditClient, seenBufferSize: Int, seen: BoundedSet[SubmissionWrapper]): Stream[Iterable[Submission]] = {
+      val potentialNewSubmissions = BoundedSet[SubmissionWrapper](seenBufferSize + DELETED_POSTS_TOLERANCE) ++ newPosts()
 
       val newSubmissions = potentialNewSubmissions.diff(seen)
       println(s"Found ${newSubmissions.size} new submissions")
-      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, seen ++ newSubmissions)
+      newSubmissions.map(_.submission) #:: streamPostsRec(reddit, seenBufferSize, potentialNewSubmissions)
     }
 
     streamPostsRec(reddit, seenBufferSize, seen)
